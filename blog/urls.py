@@ -13,9 +13,29 @@ Including another URLconf
     1. Import the include() function: from django.urls import include, path
     2. Add a URL to urlpatterns:  path('blog/', include('blog.urls'))
 """
-from django.contrib import admin
-from django.urls import path
+
+from django.urls import include, path
+from rest_framework import routers
+from rest_framework_jwt.views import refresh_jwt_token, verify_jwt_token
+
+from blog.api import views
+
+
+router = routers.DefaultRouter()
+router.register(r"api/users", views.UserViewSet)
+router.register(r"api/posts", views.PostViewSet)
 
 urlpatterns = [
-    path('admin/', admin.site.urls),
+    path('api/auth', views.CustomObtainJSONWebToken.as_view()),
+    path('api/auth/refresh/', refresh_jwt_token),
+    path('api/auth/verify/', verify_jwt_token),
+    path('api/users/activity/<int:user_id>/',
+         views.UserActivityView.as_view()),
+    path('api/posts/analytics/', views.MarksAnalyticsView.as_view()),
+    path('api/posts/dislike/<int:post_id>/', views.PostDislikeView.as_view()),
+    path('api/posts/like/<int:post_id>/', views.PostLikeView.as_view()),
+]
+
+urlpatterns += [
+    path('', include(router.urls)),
 ]
